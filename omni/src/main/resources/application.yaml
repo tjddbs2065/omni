@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: omni
+server:
+  port: 10102
