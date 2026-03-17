@@ -1,4 +1,4 @@
-import type { AgeRequest } from "../features/age/api/ageApi";
+import type { AgeRequest } from "../api/ageApi";
 import { useForm } from "react-hook-form";
 
 interface AgeFormProps{

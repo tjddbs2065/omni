@@ -1,52 +1,55 @@
-import AgeForm from "../components/AgeForm";
-import AgeResult from "../components/AgeResult";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { useAgeCalc } from "../features/age/hooks/useAgeCalc";
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
-import { useState } from "react";
-import { Calendar } from "../components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
 
 const AgePage = () => {
-    const { result, isLoading, calculate } = useAgeCalc();
-    const [open, setOpen] = useState(false);
-    const [date, setDate] = useState<Date>();
-
     return (
-        <main>
-            <div>
-                <h3 className="text-3xl font-bold underline text-red-500"></h3>
-                <AgeForm onSubmit={calculate} disabled={isLoading} />
-                <br></br>
-                {result && <AgeResult data={result} />}
+        <main className="flex-1 flex gap-2">
+            <div className="w-[350px] h-100 flex">
+                <Card className="flex-1">
+                    <CardHeader>입력 조건</CardHeader>
+                    <CardContent>
+                        <div className=""><div className="w-20">이름</div><div><Input placeholder="이름을 입력하세요."></Input> </div></div>
+                        <div className="flex flex-1">
+                            <div className="w-20">생년월일</div>
+                            <div className="flex">
+                                <div>날짜를 선택하세요</div>
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Button><CalendarIcon /></Button>
+                                    </PopoverTrigger> 
+                                    <PopoverContent>
+                                        <Calendar mode="single" captionLayout="dropdown">
 
-                <Card className="w-[350px]">
-                    <CardHeader>
-                        <CardTitle>나이 계산 서비스</CardTitle>
-                    </CardHeader>
+                                        </Calendar>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </div>
+                        <div className="flex"><div className="w-20">성별</div><div><></></div></div>
+                        <div className="w-20"></div>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="flex-1 flex flex-col gap-4">
+                <Card>
+                    <CardHeader>현재 나이</CardHeader>
                     <CardContent>
                         <div>
-                            <Popover open={open} onOpenChange={setOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button data-empty={!date}>
-                                        {date ? date.toLocaleDateString() : "Select date"}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={date}
-                                        defaultMonth={date}
-                                        captionLayout="dropdown"
-                                        onSelect={(date)=>{
-                                            setDate(date);
-                                            setOpen(false);
-                                        }}
-                                    />
-                                </PopoverContent>
-                            </Popover>
+
                         </div>
                     </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>학교 나이</CardHeader>
+                    <CardContent></CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>군대 나이</CardHeader>
+                    <CardContent></CardContent>
                 </Card>
             </div>
         </main>
