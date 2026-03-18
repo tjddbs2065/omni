@@ -1,7 +1,7 @@
 import './App.css'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import AgePage from './pages/AgePage';
-import MainLayout from './components/MainLayout';
+import MainLayout from './layouts/MainLayout';
 
 function App() {
   return (
