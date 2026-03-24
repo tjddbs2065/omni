@@ -11,33 +11,35 @@ import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
+import { parseISO } from "date-fns";
 
 // form 스키마 구성
 const formSchema = z.object({
     username: z.string()
-    .min(3, "Bug title must be at least 5 characters.")
-    .max(32, "Bug title must be at most 32 characters."),
-    birthdate: z.date(),
+        .min(3, "Bug title must be at least 5 characters.")
+        .max(32, "Bug title must be at most 32 characters."),
+    birthdate: z.string(),
+    gender: z.string(),
 });
 
 const AgePage = () => {
-    const [date, setDate] = useState<Date>();
     const [isOpen, setIsOpen] = useState<boolean>(false);
-
-    const {register, handleSubmit} = useForm<AgeRequest>();
     const { calculate } = useAgeCalc();
 
-    // form 모양 구성
+    // form hook 구성
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             username: "",
-            birthdate: new Date(),
+            birthdate: new Date().toLocaleDateString(),
+            gender: "male",
         },
     })
 
+    // form submit 메서드 구성
     const onSubmit = (data: z.infer<typeof formSchema>) => {
         console.log(data);
     }
@@ -48,17 +50,17 @@ const AgePage = () => {
                 <Card className="flex-1 shadow-md">
                     <CardHeader>입력 조건</CardHeader>
                     <CardContent className="flex flex-col gap-6">
-
+                        {/* 여기서부터 form 구성 */}
                         <form id="ageForm" onSubmit={form.handleSubmit(onSubmit)}>
-                            
                             <FieldGroup>
                                 <Controller name="username" control={form.control} render={({field, fieldState}) => (
                                     <Field data-invalid={fieldState.invalid}>
                                         <FieldLabel htmlFor="age-form-username">
                                             이름
                                         </FieldLabel>
-                                        <Input {...field} id="age-form-username" placeholder="이름을 입력하세요." autoComplete="false"/>
-
+                                        <FieldContent>
+                                            <Input {...field} id="age-form-username" placeholder="이름을 입력하세요." autoComplete="false" />
+                                        </FieldContent>
                                         { fieldState.invalid && <FieldError errors={[fieldState.error]} /> }
                                     </Field>
                                     )} 
@@ -68,67 +70,59 @@ const AgePage = () => {
                                         <FieldLabel htmlFor="age-form-birthdate">
                                             생년월일
                                         </FieldLabel>
-                                        <div>
-                                            <Input {...field} id="age-form-birthdate" />
-
-                                            <Popover open={isOpen} onOpenChange={setIsOpen}>
-                                                <PopoverTrigger asChild>
-                                                    <Button type="button" variant="outline" size="icon">
-                                                        <CalendarIcon />
-                                                    </Button>
-                                                </PopoverTrigger> 
-                                                <PopoverContent>
-                                                    <Calendar mode="single" selected={field.value} onSelect={(date)=> {
-                                                        field.onChange(date);
-                                                        setIsOpen(false);
-                                                    }}
-                                                    disabled={(date)=> date > new Date()}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                        
+                                        <FieldContent>
+                                            <div>
+                                                <InputGroup>
+                                                    <InputGroupInput id="age-form-birthdate" value={field.value} onChange={field.onChange} readOnly />
+                                                    {/* <Input {...field} value={date?.toLocaleDateString()} id="age-form-birthdate" /> */}
+                                                    <InputGroupAddon align="inline-end">
+                                                        <Popover open={isOpen} onOpenChange={setIsOpen}>
+                                                            <PopoverTrigger asChild>
+                                                                <InputGroupButton>
+                                                                    <CalendarIcon />
+                                                                </InputGroupButton>
+                                                            </PopoverTrigger> 
+                                                            <PopoverContent>
+                                                                <Calendar mode="single" 
+                                                                    selected={parseISO(field.value) || undefined}
+                                                                    onSelect={(date)=> {
+                                                                        // field.onChange(date);
+                                                                        field.onChange(date?.toLocaleDateString());
+                                                                        setIsOpen(false);
+                                                                    }
+                                                                }
+                                                                disabled={(date)=> date > new Date()}
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </InputGroupAddon>
+                                                </InputGroup>
+                                            </div>
+                                        </FieldContent>
                                         { fieldState.invalid && <FieldError errors={[fieldState.error]} /> }
                                     </Field>
                                     )} 
                                 />
-
-
-                                <div className="flex w-full">
-                                    <div className="w-20 flex items-start">이름:</div>
-                                    <div className="flex-1"><Input placeholder="이름을 입력하세요."></Input> </div>
-                                </div>
-                                <div className="flex flex-1 w-full">
-                                    <div className="w-20 flex items-start">생년월일:</div>
-                                    <div className="flex-1 flex justify-between">
-                                        <div>{date?.toLocaleDateString() || "날짜를 선택하세요"}</div>
-                                        <div>
-                                            <Popover open={isOpen} onOpenChange={setIsOpen}>
-                                                <PopoverTrigger>
-                                                    <Button><CalendarIcon /></Button>
-                                                </PopoverTrigger> 
-                                                <PopoverContent>
-                                                    <Calendar mode="single" captionLayout="dropdown" selected={date} onSelect={(date)=> {setIsOpen(false); setDate(date)}}/>
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex">
-                                    <div className="w-20 flex items-start">성별: </div>
-                                    <div className="flex-1 flex">
-                                        <RadioGroup className="flex flex-1 justify-start gap-10" {...register("gender")}>
-                                            <div className="flex items-center gap-3">
-                                                <RadioGroupItem value="male" id="r1" />
-                                                <Label htmlFor="r1">남</Label>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <RadioGroupItem value="female" id="r2" />
-                                                <Label htmlFor="r2">여</Label>
-                                            </div>
-                                        </RadioGroup>
-                                    </div>
-                                </div>
+                                <Controller name="gender" control={form.control} render={({field, fieldState}) => (
+                                    <Field>
+                                        <FieldLabel htmlFor="age-form-gender">성별</FieldLabel>
+                                        <FieldContent>
+                                            <RadioGroup id="age-form-gender" className="flex flex-1 justify-start gap-10"
+                                                value={field.value} onValueChange={field.onChange} disabled={field.disabled} >
+                                                <div className="flex items-center gap-3">
+                                                    <RadioGroupItem value="male" id="r1" />
+                                                    <Label htmlFor="r1">남</Label>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <RadioGroupItem value="female" id="r2" />
+                                                    <Label htmlFor="r2">여</Label>
+                                                </div>
+                                            </RadioGroup>
+                                        </FieldContent>
+                                        { fieldState.invalid && <FieldError errors={[fieldState.error]} /> }
+                                    </Field>
+                                )}
+                                />
                                 <div>
                                     <Button variant="outline" type="submit" form="ageForm">계산</Button>
                                 </div>
