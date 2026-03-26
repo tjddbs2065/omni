@@ -1,4 +1,4 @@
-import type { AgeResponse } from "../features/age/api/ageApi";
+import type { AgeResponse } from "@/features/age/api/ageApi";
 
 interface Props {
     data: AgeResponse;
