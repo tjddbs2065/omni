@@ -1,11 +1,10 @@
-import { Controller, Form, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useAgeCalc } from "@/features/age";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import * as z from "zod";
@@ -13,7 +12,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { ageApi } from "@/features/age/api/ageApi";
 
 
 // form 스키마 구성
@@ -25,46 +25,49 @@ const formSchema = z.object({
     gender: z.string(),
 });
 
+const fetchAgeCalculation = async (data: z.infer<typeof formSchema>)=>{
+    const birthDate = data.birthdate;
+    const response = await ageApi.calculateAge({
+        year: birthDate.getFullYear(),
+        month: birthDate.getMonth() + 1,
+        day: birthDate.getDate(),
+        gender: "MALE"
+    });
+    return response;
+}
+
 const AgePage = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const { calculate } = useAgeCalc();
-    
-    const queryClient = new QueryClient();
 
-    // form hook 구성
+    // hook form 구성
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             username: "",
             birthdate: new Date(),
-            gender: "male",
+            gender: "MALE",
         },
-    })
-
-    // form submit 메서드 구성
-    const onSubmit = (data: z.infer<typeof formSchema>) => {
-        var birthDate = data.birthdate;
-        calculate({year: birthDate.getFullYear(), month: birthDate.getMonth()+1, day: birthDate.getDate(), gender: data.gender })
-        console.log(data);
-    }
-
-    const { data, isLoading, isError, error } = useQuery({
-        queryKey: ['birthdate'],
-        queryFn: onSubmit,
     });
 
-    if(isLoading) return <>로딩 중</>;
-    if(isError) return <>에러 발생: {error.message}</>
+    const mutation = useMutation({
+        mutationFn: fetchAgeCalculation,
+        onSuccess: (responseData) => {
+            console.log(responseData);
+        },
+        onError: (error) => {
+            console.log(error);
+        }
+    });
 
     return (
-        <QueryClientProvider client={queryClient}>
+        <>
             <main className="flex-1 flex gap-6">
                 <div className="w-[400px] flex">
                     <Card className="flex-1 shadow-md">
                         <CardHeader>입력 조건</CardHeader>
                         <CardContent className="flex flex-col gap-6">
                             {/* 여기서부터 form 구성 */}
-                            <form id="ageForm" onSubmit={form.handleSubmit(onSubmit)}>
+                            <form id="ageForm" onSubmit={form.handleSubmit((data: z.infer<typeof formSchema>) => mutation.mutate(data))}>
                                 <FieldGroup>
                                     <Controller name="username" control={form.control} render={({field, fieldState}) => (
                                         <Field data-invalid={fieldState.invalid}>
@@ -95,7 +98,15 @@ const AgePage = () => {
                                                                         <CalendarIcon />
                                                                     </InputGroupButton>
                                                                 </PopoverTrigger> 
-                                                                <PopoverContent>
+                                                                <PopoverContent
+                                                                    onPointerDownOutside={(e)=>{
+                                                                        if(e.target instanceof Element && e.target.closest("select")){
+                                                                            e.preventDefault();
+                                                                        }
+                                                                    }}
+                                                                    onFocusOutside={(e)=>{
+                                                                        e.preventDefault();
+                                                                    }}>
                                                                     <Calendar mode="single" 
                                                                         selected={field.value}
                                                                         onSelect={(date)=> {
@@ -105,6 +116,7 @@ const AgePage = () => {
                                                                         }
                                                                     }
                                                                     disabled={(date)=> date > new Date()}
+                                                                    captionLayout="dropdown-years"
                                                                     />
                                                                 </PopoverContent>
                                                             </Popover>
@@ -137,7 +149,9 @@ const AgePage = () => {
                                     )}
                                     />
                                     <div>
-                                        <Button variant="outline" type="submit" form="ageForm">계산</Button>
+                                        <Button variant="outline" type="submit" form="ageForm" disabled={mutation.isPending} className="w-20">
+                                            {mutation.isPending ? "계산 중..." : "계산"}
+                                        </Button>
                                     </div>
                                 </FieldGroup>
 
@@ -149,11 +163,7 @@ const AgePage = () => {
                     <Card className="shadow-md">
                         <CardHeader>현재 나이</CardHeader>
                         <CardContent>
-                            <div>
-                                {data.map(todo =>(
-                                    <li key = {todo.id}>{todo.title}</li>
-                                )}
-                            </div>
+                            <div>{mutation.data ? `${mutation.data.currentAge.currentAge.koreanAge}살` : "여기에 표시"}</div>
                         </CardContent>
                     </Card>
                     <Card className="shadow-md">
@@ -170,7 +180,7 @@ const AgePage = () => {
                     </Card>
                 </div>
             </main>
-        </QueryClientProvider>
+        </>
     );
 };
 
