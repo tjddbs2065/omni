@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { AgeResponse } from "../api/ageApi";
+import type { AgeResponse, BasicAge } from "../api/ageApi";
 
 interface agePrintBoxProps {
-    header: React.ReactNode; // 헤더 전용 속성
-    children: AgeResponse | undefined; // 어떤 것이든 담을 수 있는 가장 유연한 타입
+    header: React.ReactNode; 
+    children: Record<string, BasicAge> | undefined;
 }
 
 const AgePrintBox = ({header, children}: agePrintBoxProps) => {
@@ -11,8 +11,15 @@ const AgePrintBox = ({header, children}: agePrintBoxProps) => {
         <Card className="shadow-md">
             <CardHeader>{header}</CardHeader>
             <CardContent>
-                <div>{children?.currentAge.currentAge.internationalAge}</div>
-                <div>{children?.currentAge.currentAge.koreanAge}</div>
+                
+                {Object.entries(children ?? {}).map(([key, value]) => (
+                    <div key={key} className="my-2"> 
+                        <div>나이: {value.internationalAge}세</div>
+                        <div>한국 나이: {value.koreanAge}세</div>
+                        <div>살아온 일수: {value.daysAlive}일</div>                
+                    </div>
+                ))}
+
             </CardContent>
         </Card>
     );

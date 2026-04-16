@@ -1,29 +1,23 @@
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
-import { PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar, CalendarIcon } from "lucide-react";
-import { Label, Popover, RadioGroup } from "radix-ui";
+import { Label } from "@/components/ui/label"
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
+import { formSchema } from "../api/ageApi";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 
 interface AgeInputBoxProps {
     header: React.ReactNode;
     children: React.ReactNode;
     onSubmit: (data: z.infer<typeof formSchema>) => void;
 }
-
-// form 스키마 구성(Validation)
-const formSchema = z.object({
-    username: z.string()
-        .min(3, "Bug title must be at least 5 characters.")
-        .max(32, "Bug title must be at most 32 characters."),
-    birthdate: z.date(),
-    gender: z.string(),
-});
 
 const AgeInputBox = ({header, children, onSubmit}: AgeInputBoxProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -121,8 +115,8 @@ const AgeInputBox = ({header, children, onSubmit}: AgeInputBoxProps) => {
                 )}
                 />
                 <div>
-                    <Button variant="outline" type="submit" form="ageForm" disabled={mutation.isPending} className="w-20">
-                        {mutation.isPending ? "계산 중..." : "계산"}
+                    <Button variant="outline" type="submit" form="ageForm" className="w-20">
+                        계산
                     </Button>
                 </div>
             </FieldGroup>
