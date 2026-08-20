@@ -1,8 +1,5 @@
-import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useState } from "react";
 import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from '@tanstack/react-query';
 import { ageApi } from "@/features/age/api/ageApi";
 import AgePrintBox from "@/features/age/components/AgePrintBox";
